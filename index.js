@@ -2,6 +2,7 @@ var App = /** @class */ (function () {
     function App() {
         this.stageWidth = 300;
         this.stageHeight = 300;
+        this.balls = [];
         // canvas를 생성해주고
         this.canvas = document.createElement("canvas");
         // body에 추가한다.
@@ -11,10 +12,12 @@ var App = /** @class */ (function () {
         this.paint();
         // 움직이는 공을 위한 애니메이션 함수
         this.ball = [
-            new Ball(this.stageWidth, this.stageHeight, 15, 5),
+            new Ball(this.stageWidth, this.stageHeight, 15, 7),
+            new Ball(this.stageWidth, this.stageHeight, 15, 9),
             new Ball(this.stageWidth, this.stageHeight, 15, 5),
         ];
-        this.block = new Block(50, 60, 70, 30);
+        this.balls.push(this.ball[0].getThisBall(), this.ball[1].getThisBall());
+        this.block = new Block(0, 0, this.stageWidth, this.stageHeight);
         window.requestAnimationFrame(this.animate.bind(this));
     }
     App.prototype.paint = function () {
@@ -25,12 +28,22 @@ var App = /** @class */ (function () {
         this.ctx.scale(this.pixelRatio, this.pixelRatio);
     };
     App.prototype.animate = function () {
+        var _this = this;
         window.requestAnimationFrame(this.animate.bind(this));
         // 애니메이션 함수 호출시 캔버스 clear
         this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
         this.block.draw(this.ctx);
-        this.ball[0].draw(this.ctx, this.stageWidth, this.stageHeight);
-        this.ball[1].draw(this.ctx, this.stageWidth, this.stageHeight);
+        this.ball.forEach(function (element) {
+            element.draw(_this.ctx, _this.stageWidth, _this.stageHeight);
+        });
+        this.ball.forEach(function (item, index) {
+            var filterBall = _this.ball.filter(function (tem, idx) {
+                return index != idx;
+            });
+            filterBall.forEach(function (ele) {
+                ele.bounceBall(item);
+            });
+        });
     };
     return App;
 }());
@@ -72,10 +85,45 @@ var Ball = /** @class */ (function () {
         this.y += this.vy;
         // 공이 화면에 닿으면 튀게끔 함수를 만듦
         this.bounceWindow(stageWidth, stageHeight);
+        this.movingBall();
         ctx.fillStyle = "yellow";
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
+    };
+    Ball.prototype.movingBall = function () {
+        this.top = this.y + this.radius;
+        this.bottom = this.y - this.radius;
+        this.right = this.x + this.radius;
+        this.left = this.x - this.radius;
+    };
+    Ball.prototype.getThisBall = function () {
+        return {
+            top: this.top,
+            left: this.left,
+            right: this.right,
+            botton: this.bottom
+        };
+    };
+    Ball.prototype.xChange = function () {
+        this.vx *= -1;
+        this.x += this.vx;
+    };
+    Ball.prototype.yChange = function () {
+        this.vy *= -1;
+        this.y += this.vy;
+    };
+    Ball.prototype.bounceBall = function (ab) {
+        var distancX = Math.pow(this.x - ab.x, 2);
+        var distancY = Math.pow(this.y - ab.y, 2);
+        var After = {
+            MoveBetween: Math.sqrt(distancX + distancY),
+            Between: ab.radius + this.radius
+        };
+        if (After.MoveBetween < After.Between) {
+            this.vx = -this.vx;
+            this.vy = -this.vy;
+        }
     };
     Ball.prototype.bounceWindow = function (stageWidth, stageHeight) {
         var minX = this.radius;
@@ -85,12 +133,10 @@ var Ball = /** @class */ (function () {
         // 창 끝에 닿으면
         if (this.x <= minX || this.x >= maxX) {
             // 증가 값을 음수로 만들어 반대로 이동하게 한다.
-            this.vx *= -1;
-            this.x += this.vx;
+            this.xChange();
         }
         if (this.y <= minY || this.y >= maxY) {
-            this.vy *= -1;
-            this.y += this.vy;
+            this.yChange();
         }
     };
     return Ball;

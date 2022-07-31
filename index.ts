@@ -6,6 +6,8 @@ class App {
   stageHeight = 300;
   ball;
   block;
+
+  balls: Ball[] = [];
   constructor() {
     // canvas를 생성해주고
     this.canvas = document.createElement("canvas");
@@ -19,10 +21,14 @@ class App {
 
     // 움직이는 공을 위한 애니메이션 함수
     this.ball = [
-      new Ball(this.stageWidth, this.stageHeight, 15, 5),
+      new Ball(this.stageWidth, this.stageHeight, 15, 7),
+      new Ball(this.stageWidth, this.stageHeight, 15, 9),
       new Ball(this.stageWidth, this.stageHeight, 15, 5),
     ];
-    this.block = new Block(50, 60, 70, 30);
+
+    this.balls.push(this.ball[0].getThisBall(), this.ball[1].getThisBall());
+
+    this.block = new Block(0, 0, this.stageWidth, this.stageHeight);
     window.requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -40,8 +46,18 @@ class App {
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
 
     this.block.draw(this.ctx);
-    this.ball[0].draw(this.ctx, this.stageWidth, this.stageHeight);
-    this.ball[1].draw(this.ctx, this.stageWidth, this.stageHeight);
+    this.ball.forEach((element) => {
+      element.draw(this.ctx, this.stageWidth, this.stageHeight);
+    });
+
+    this.ball.forEach((item, index) => {
+      const filterBall = this.ball.filter((tem, idx) => {
+        return index != idx;
+      });
+      filterBall.forEach((ele) => {
+        ele.bounceBall(item);
+      });
+    });
   }
 }
 // 캔버스 실행
@@ -75,6 +91,10 @@ class Ball {
   vy;
   x: 10;
   y: 10;
+  top;
+  bottom;
+  right;
+  left;
   // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
   constructor(stageWidth, stageHeight, radius, speed) {
     this.radius = radius;
@@ -85,6 +105,7 @@ class Ball {
     // 우선 공의 지름을 잡는다.
     const diameter = this.radius * 2;
     // 공이 화면 밖에 생성되면 안되기 때문에 원의 중앙(x, y)을 잡아준다.
+
     this.x = this.radius + Math.random() * (stageWidth - diameter);
     this.y = this.radius + Math.random() * (stageHeight - diameter);
   }
@@ -94,11 +115,53 @@ class Ball {
     this.y += this.vy;
     // 공이 화면에 닿으면 튀게끔 함수를 만듦
     this.bounceWindow(stageWidth, stageHeight);
+    this.movingBall();
 
     ctx.fillStyle = "yellow";
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  movingBall() {
+    this.top = this.y + this.radius;
+    this.bottom = this.y - this.radius;
+    this.right = this.x + this.radius;
+    this.left = this.x - this.radius;
+  }
+
+  getThisBall() {
+    return {
+      top: this.top,
+      left: this.left,
+      right: this.right,
+      botton: this.bottom,
+    };
+  }
+
+  xChange() {
+    this.vx *= -1;
+    this.x += this.vx;
+  }
+
+  yChange() {
+    this.vy *= -1;
+    this.y += this.vy;
+  }
+
+  bounceBall(ab) {
+    const distancX = Math.pow(this.x - ab.x, 2);
+    const distancY = Math.pow(this.y - ab.y, 2);
+
+    const After = {
+      MoveBetween: Math.sqrt(distancX + distancY),
+      Between: ab.radius + this.radius,
+    };
+
+    if (After.MoveBetween < After.Between) {
+      this.vx = -this.vx;
+      this.vy = -this.vy;
+    }
   }
 
   bounceWindow(stageWidth, stageHeight) {
@@ -109,12 +172,10 @@ class Ball {
     // 창 끝에 닿으면
     if (this.x <= minX || this.x >= maxX) {
       // 증가 값을 음수로 만들어 반대로 이동하게 한다.
-      this.vx *= -1;
-      this.x += this.vx;
+      this.xChange();
     }
     if (this.y <= minY || this.y >= maxY) {
-      this.vy *= -1;
-      this.y += this.vy;
+      this.yChange();
     }
   }
 }
