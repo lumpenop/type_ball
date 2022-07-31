@@ -10,7 +10,11 @@ var App = /** @class */ (function () {
         // 디바이스에 따라 선명도를 올려주기 위해 사용
         this.paint();
         // 움직이는 공을 위한 애니메이션 함수
-        this.ball = new Ball(this.stageWidth, this.stageHeight, 15, 5);
+        this.ball = [
+            new Ball(this.stageWidth, this.stageHeight, 15, 5),
+            new Ball(this.stageWidth, this.stageHeight, 15, 5),
+        ];
+        this.block = new Block(50, 60, 70, 30);
         window.requestAnimationFrame(this.animate.bind(this));
     }
     App.prototype.paint = function () {
@@ -24,11 +28,31 @@ var App = /** @class */ (function () {
         window.requestAnimationFrame(this.animate.bind(this));
         // 애니메이션 함수 호출시 캔버스 clear
         this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-        this.ball.draw(this.ctx, this.stageWidth, this.stageHeight);
+        this.block.draw(this.ctx);
+        this.ball[0].draw(this.ctx, this.stageWidth, this.stageHeight);
+        this.ball[1].draw(this.ctx, this.stageWidth, this.stageHeight);
     };
     return App;
 }());
 // 캔버스 실행
+window.onload = function () {
+    new App();
+};
+var Block = /** @class */ (function () {
+    function Block(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+    Block.prototype.draw = function (ctx) {
+        ctx.fillStyle = "tomato";
+        ctx.beginPath();
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.fill();
+    };
+    return Block;
+}());
 var Ball = /** @class */ (function () {
     // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
     function Ball(stageWidth, stageHeight, radius, speed) {
@@ -71,6 +95,3 @@ var Ball = /** @class */ (function () {
     };
     return Ball;
 }());
-window.onload = function () {
-    new App();
-};

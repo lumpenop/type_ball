@@ -5,6 +5,7 @@ class App {
   stageWidth = 300;
   stageHeight = 300;
   ball;
+  block;
   constructor() {
     // canvas를 생성해주고
     this.canvas = document.createElement("canvas");
@@ -17,7 +18,11 @@ class App {
     this.paint();
 
     // 움직이는 공을 위한 애니메이션 함수
-    this.ball = new Ball(this.stageWidth, this.stageHeight, 15, 5);
+    this.ball = [
+      new Ball(this.stageWidth, this.stageHeight, 15, 5),
+      new Ball(this.stageWidth, this.stageHeight, 15, 5),
+    ];
+    this.block = new Block(50, 60, 70, 30);
     window.requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -34,10 +39,36 @@ class App {
     // 애니메이션 함수 호출시 캔버스 clear
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
 
-    this.ball.draw(this.ctx, this.stageWidth, this.stageHeight);
+    this.block.draw(this.ctx);
+    this.ball[0].draw(this.ctx, this.stageWidth, this.stageHeight);
+    this.ball[1].draw(this.ctx, this.stageWidth, this.stageHeight);
   }
 }
 // 캔버스 실행
+
+window.onload = () => {
+  new App();
+};
+
+class Block {
+  x;
+  y;
+  width;
+  height;
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+
+  draw(ctx) {
+    ctx.fillStyle = "tomato";
+    ctx.beginPath();
+    ctx.rect(this.x, this.y, this.width, this.height);
+    ctx.fill();
+  }
+}
 class Ball {
   radius;
   vx;
@@ -87,7 +118,3 @@ class Ball {
     }
   }
 }
-
-window.onload = () => {
-  new App();
-};
