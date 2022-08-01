@@ -21,12 +21,10 @@ class App {
 
     // 움직이는 공을 위한 애니메이션 함수
     this.ball = [
-      new Ball(this.stageWidth, this.stageHeight, 15, 7),
-      new Ball(this.stageWidth, this.stageHeight, 15, 9),
-      new Ball(this.stageWidth, this.stageHeight, 15, 5),
+      new Ball(this.stageWidth, this.stageHeight, 15, 6),
+      new Ball(this.stageWidth, this.stageHeight, 15, 6),
+      new Ball(this.stageWidth, this.stageHeight, 15, 6),
     ];
-
-    this.balls.push(this.ball[0].getThisBall(), this.ball[1].getThisBall());
 
     this.block = new Block(0, 0, this.stageWidth, this.stageHeight);
     window.requestAnimationFrame(this.animate.bind(this));
@@ -95,12 +93,15 @@ class Ball {
   bottom;
   right;
   left;
+  flag = false;
+  speed;
   // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
   constructor(stageWidth, stageHeight, radius, speed) {
     this.radius = radius;
     // 공이 움직이는 속도
-    this.vx = speed;
-    this.vy = speed;
+    this.vx = speed / 2;
+    this.vy = speed / 2;
+    this.speed = speed;
 
     // 우선 공의 지름을 잡는다.
     const diameter = this.radius * 2;
@@ -115,28 +116,11 @@ class Ball {
     this.y += this.vy;
     // 공이 화면에 닿으면 튀게끔 함수를 만듦
     this.bounceWindow(stageWidth, stageHeight);
-    this.movingBall();
 
     ctx.fillStyle = "yellow";
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
-  }
-
-  movingBall() {
-    this.top = this.y + this.radius;
-    this.bottom = this.y - this.radius;
-    this.right = this.x + this.radius;
-    this.left = this.x - this.radius;
-  }
-
-  getThisBall() {
-    return {
-      top: this.top,
-      left: this.left,
-      right: this.right,
-      botton: this.bottom,
-    };
   }
 
   xChange() {
@@ -149,6 +133,28 @@ class Ball {
     this.y += this.vy;
   }
 
+  ballAngle(ball: Ball) {
+    const thisX = ball.x - (ball.x + ball.vx);
+    const thisY = ball.y - (ball.y + ball.vy);
+    const radian = Math.atan2(thisY, thisX);
+    const degree = (radian * 180) / Math.PI;
+
+    return degree;
+  }
+
+  checkAngleRange(ang) {
+    if (ang > 360) {
+      ang -= 360;
+    } else if (ang < 0) {
+      ang += 360;
+    }
+    return ang;
+  }
+
+  calculateAngle(thisAng, abAng) {
+    thisAng;
+  }
+
   bounceBall(ab) {
     const distancX = Math.pow(this.x - ab.x, 2);
     const distancY = Math.pow(this.y - ab.y, 2);
@@ -158,9 +164,31 @@ class Ball {
       Between: ab.radius + this.radius,
     };
 
-    if (After.MoveBetween < After.Between) {
-      this.vx = -this.vx;
-      this.vy = -this.vy;
+    const thisAngle = this.ballAngle(this);
+    const abAngle = this.ballAngle(ab);
+
+    if (After.MoveBetween < After.Between - 2) {
+      let angle;
+      if (this.x > ab.x && this.y < ab.y) angle = abAngle + thisAngle - 180;
+      if (this.x > ab.x && this.y > ab.y) angle = abAngle - thisAngle - 180;
+      if (this.x < ab.x && this.y < ab.y) angle = thisAngle + abAngle;
+      if (this.x < ab.x && this.y > ab.y) angle = abAngle - thisAngle;
+
+      const newX = Math.cos(angle) * this.speed;
+      const newY = Math.sin(angle) * this.speed;
+      this.vx = newX;
+      this.vy = newY;
+      this.x += this.vx + this.radius / 4;
+      this.y += this.vy + this.radius / 4;
+      ab.x -= this.vx + this.radius / 4;
+      ab.y -= this.vy + this.radius / 4;
+
+      if (!this.flag) {
+        console.log(this, angle);
+        this.flag = true;
+        console.log(newX, "newX");
+        console.log(newY, "newY");
+      }
     }
   }
 
