@@ -1,3 +1,4 @@
+import { Ball } from "./Ball";
 class App {
   canvas;
   ctx;
@@ -9,17 +10,13 @@ class App {
   ballCount;
 
   constructor() {
-    // canvas를 생성해주고
     this.canvas = document.createElement("canvas");
-    // body에 추가한다.
     document.body.appendChild(this.canvas);
 
     this.ctx = this.canvas.getContext("2d");
-    // 디바이스에 따라 선명도를 올려주기 위해 사용
 
     this.paint();
 
-    // 움직이는 공을 위한 애니메이션 함수
     this.ballCount = Math.random() * 10 + 10;
 
     for (let i = 0; i < this.ballCount; i++) {
@@ -37,10 +34,8 @@ class App {
   }
 
   paint() {
-    // resize때마다 canvas의 width, height를 창 사이즈로 만들어 주기 위함.
     this.canvas.width = this.stageWidth;
     this.canvas.height = this.stageHeight;
-    // 선명도를 좋게 해주기 위함
     this.ctx.scale(this.pixelRatio, this.pixelRatio);
   }
 
@@ -68,7 +63,6 @@ class App {
     this.createBall();
   }
 }
-// 캔버스 실행
 
 window.onload = () => {
   new App();
@@ -92,166 +86,5 @@ class Block {
     ctx.beginPath();
     ctx.rect(this.x, this.y, this.width, this.height);
     ctx.fill();
-  }
-}
-class Ball {
-  radius;
-  vx;
-  vy;
-  x;
-  y;
-  top: number;
-  bottom: number;
-  right: number;
-  left: number;
-  speed;
-  time: number;
-  // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
-  constructor(
-    stageWidth: number,
-    stageHeight: number,
-    radius: number,
-    speed: number
-  ) {
-    this.radius = radius;
-    // 공이 움직이는 속도
-    const randX = Math.floor(Math.random() * 3 - 1);
-    const randY = Math.floor(Math.random() * 3 - 1);
-    this.vx = randX * speed;
-    this.vy = randY * speed;
-    if (this.vx + this.vy === 0) {
-      Math.floor(Math.random() * 2) ? (this.vx = speed) : (this.vy = speed);
-    }
-    this.speed = speed;
-
-    // 우선 공의 지름을 잡는다.
-    const diameter = this.radius * 2;
-    // 공이 화면 밖에 생성되면 안되기 때문에 원의 중앙(x, y)을 잡아준다.
-
-    this.x = this.radius + Math.random() * (stageWidth - diameter);
-    this.y = this.radius + Math.random() * (stageHeight - diameter);
-  }
-  draw(ctx: CanvasRenderingContext2D, stageWidth: number, stageHeight: number) {
-    // 지속적으로 값이 증가함으로써 공이 움직이는 것처럼 보일 예정
-    this.x += this.vx;
-    this.y += this.vy;
-    // 공이 화면에 닿으면 튀게끔 함수를 만듦
-    this.bounceWindow(stageWidth, stageHeight);
-
-    ctx.fillStyle = "yellow";
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  xChange() {
-    this.vx *= -1;
-    this.x += this.vx;
-  }
-
-  yChange() {
-    this.vy *= -1;
-    this.y += this.vy;
-  }
-
-  ballAngle(ball: Ball) {
-    const thisX = ball.x - (ball.x + ball.vx);
-    const thisY = ball.y - (ball.y + ball.vy);
-    const radian = Math.atan2(thisY, thisX);
-    const degree = (radian * 180) / Math.PI;
-
-    return degree;
-  }
-
-  checkAngleRange(ang: number) {
-    if (ang >= 360) {
-      ang -= 360;
-    } else if (ang < 0) {
-      ang += 360;
-    }
-    return ang;
-  }
-
-  // 더 가까워지는 방향이라면 다시 계산..?
-
-  calcualateDistance(aa: Ball, ab: Ball) {
-    const distancX = Math.pow(aa.x - ab.x, 2);
-    const distancY = Math.pow(aa.y - ab.y, 2);
-
-    const After = {
-      MoveBetween: Math.sqrt(distancX + distancY),
-      Between: ab.radius + this.radius,
-    };
-
-    return { After };
-  }
-
-  calculateAngle(thisAngle: number, abAngle: number) {
-    let angle = abAngle + Math.abs(thisAngle - abAngle) + 180;
-
-    angle = this.checkAngleRange(angle);
-
-    const newX = Math.cos(angle) * this.speed;
-    const newY = Math.sin(angle) * this.speed;
-    return { newX, newY };
-  }
-
-  reverseAngle(ang: number) {
-    if (ang <= 180) {
-      ang += 180;
-    } else {
-      ang -= 180;
-    }
-    return ang;
-  }
-
-  bounceBall(ab: Ball) {
-    const { After } = this.calcualateDistance(this, ab);
-
-    const thisAngle = this.ballAngle(this);
-    const abAngle = this.ballAngle(ab);
-
-    if (
-      After.MoveBetween <= After.Between + 4 &&
-      After.MoveBetween - After.Between > -4
-    ) {
-      const { newX, newY } = this.calculateAngle(thisAngle, abAngle);
-
-      const ifX = this.x + newX;
-      const ifY = this.y + newY;
-      const distancX = Math.pow(ifX - ab.x, 2);
-      const distancY = Math.pow(ifY - ab.y, 2);
-      const MoveBetween = Math.sqrt(distancX + distancY);
-
-      if (After.MoveBetween > MoveBetween) {
-        const thisX = ifX - (ifX + this.vx);
-        const thisY = ifY - (ifY + this.vy);
-        const radian = Math.atan2(thisY, thisX);
-        const degree = (radian * 180) / Math.PI;
-
-        const newDeg = this.reverseAngle(degree);
-        const { newX, newY } = this.calculateAngle(newDeg, abAngle);
-        this.vx = newX;
-        this.vy = newY;
-      } else {
-        this.vx = newX;
-        this.vy = newY;
-      }
-    }
-  }
-
-  bounceWindow(stageWidth: number, stageHeight: number) {
-    const minX = this.radius;
-    const maxX = stageWidth - this.radius;
-    const minY = this.radius;
-    const maxY = stageHeight - this.radius;
-    // 창 끝에 닿으면
-    if (this.x <= minX || this.x >= maxX) {
-      // 증가 값을 음수로 만들어 반대로 이동하게 한다.
-      this.xChange();
-    }
-    if (this.y <= minY || this.y >= maxY) {
-      this.yChange();
-    }
   }
 }
