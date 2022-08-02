@@ -174,14 +174,39 @@ class Ball {
 
   // 더 가까워지는 방향이라면 다시 계산..?
 
-  bounceBall(ab: Ball) {
-    const distancX = Math.pow(this.x - ab.x, 2);
-    const distancY = Math.pow(this.y - ab.y, 2);
+  calcualateDistance(aa: Ball, ab: Ball) {
+    const distancX = Math.pow(aa.x - ab.x, 2);
+    const distancY = Math.pow(aa.y - ab.y, 2);
 
     const After = {
       MoveBetween: Math.sqrt(distancX + distancY),
       Between: ab.radius + this.radius,
     };
+
+    return { After };
+  }
+
+  calculateAngle(thisAngle: number, abAngle: number) {
+    let angle = abAngle + Math.abs(thisAngle - abAngle) + 180;
+
+    angle = this.checkAngleRange(angle);
+
+    const newX = Math.cos(angle) * this.speed;
+    const newY = Math.sin(angle) * this.speed;
+    return { newX, newY };
+  }
+
+  reverseAngle(ang: number) {
+    if (ang <= 180) {
+      ang += 180;
+    } else {
+      ang -= 180;
+    }
+    return ang;
+  }
+
+  bounceBall(ab: Ball) {
+    const { After } = this.calcualateDistance(this, ab);
 
     const thisAngle = this.ballAngle(this);
     const abAngle = this.ballAngle(ab);
@@ -190,15 +215,28 @@ class Ball {
       After.MoveBetween <= After.Between + 4 &&
       After.MoveBetween - After.Between > -4
     ) {
-      let angle = abAngle + Math.abs(thisAngle - abAngle) + 180;
+      const { newX, newY } = this.calculateAngle(thisAngle, abAngle);
 
-      angle = this.checkAngleRange(angle);
+      const ifX = this.x + newX;
+      const ifY = this.y + newY;
+      const distancX = Math.pow(ifX - ab.x, 2);
+      const distancY = Math.pow(ifY - ab.y, 2);
+      const MoveBetween = Math.sqrt(distancX + distancY);
 
-      const newX = Math.cos(angle) * this.speed;
-      const newY = Math.sin(angle) * this.speed;
+      if (After.MoveBetween > MoveBetween) {
+        const thisX = ifX - (ifX + this.vx);
+        const thisY = ifY - (ifY + this.vy);
+        const radian = Math.atan2(thisY, thisX);
+        const degree = (radian * 180) / Math.PI;
 
-      this.vx = newX;
-      this.vy = newY;
+        const newDeg = this.reverseAngle(degree);
+        const { newX, newY } = this.calculateAngle(newDeg, abAngle);
+        this.vx = newX;
+        this.vy = newY;
+      } else {
+        this.vx = newX;
+        this.vy = newY;
+      }
     }
   }
 
