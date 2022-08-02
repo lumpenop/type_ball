@@ -1,7 +1,7 @@
 class App {
   canvas;
   ctx;
-  pixelRatio;
+  pixelRatio: number;
   stageWidth = 1000;
   stageHeight = 500;
   ball: Ball[] = [];
@@ -24,7 +24,9 @@ class App {
 
     for (let i = 0; i < this.ballCount; i++) {
       const radius = Math.random() * 10 + 10;
-      const speed = ((Math.random() * (400 - 200) + 200) / 60).toFixed(2);
+      const speed = Number(
+        ((Math.random() * (400 - 200) + 200) / 60).toFixed(2)
+      );
       this.ball.push(
         new Ball(this.stageWidth, this.stageHeight, radius, speed)
       );
@@ -53,7 +55,7 @@ class App {
     });
   }
 
-  animate(timestamp) {
+  animate() {
     window.requestAnimationFrame(this.animate.bind(this));
     // 애니메이션 함수 호출시 캔버스 clear
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
@@ -78,14 +80,14 @@ class Block {
   width;
   height;
 
-  constructor(x, y, width, height) {
+  constructor(x: number, y: number, width: number, height: number) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
   }
 
-  draw(ctx) {
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = "tomato";
     ctx.beginPath();
     ctx.rect(this.x, this.y, this.width, this.height);
@@ -93,20 +95,24 @@ class Block {
   }
 }
 class Ball {
-  number;
   radius;
   vx;
   vy;
   x;
   y;
-  top;
-  bottom;
-  right;
-  left;
+  top: number;
+  bottom: number;
+  right: number;
+  left: number;
   speed;
-  time;
+  time: number;
   // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
-  constructor(stageWidth, stageHeight, radius, speed) {
+  constructor(
+    stageWidth: number,
+    stageHeight: number,
+    radius: number,
+    speed: number
+  ) {
     this.radius = radius;
     // 공이 움직이는 속도
     const randX = Math.floor(Math.random() * 3 - 1);
@@ -125,7 +131,7 @@ class Ball {
     this.x = this.radius + Math.random() * (stageWidth - diameter);
     this.y = this.radius + Math.random() * (stageHeight - diameter);
   }
-  draw(ctx, stageWidth, stageHeight) {
+  draw(ctx: CanvasRenderingContext2D, stageWidth: number, stageHeight: number) {
     // 지속적으로 값이 증가함으로써 공이 움직이는 것처럼 보일 예정
     this.x += this.vx;
     this.y += this.vy;
@@ -157,7 +163,7 @@ class Ball {
     return degree;
   }
 
-  checkAngleRange(ang) {
+  checkAngleRange(ang: number) {
     if (ang >= 360) {
       ang -= 360;
     } else if (ang < 0) {
@@ -166,7 +172,9 @@ class Ball {
     return ang;
   }
 
-  bounceBall(ab) {
+  // 더 가까워지는 방향이라면 다시 계산..?
+
+  bounceBall(ab: Ball) {
     const distancX = Math.pow(this.x - ab.x, 2);
     const distancY = Math.pow(this.y - ab.y, 2);
 
@@ -194,7 +202,7 @@ class Ball {
     }
   }
 
-  bounceWindow(stageWidth, stageHeight) {
+  bounceWindow(stageWidth: number, stageHeight: number) {
     const minX = this.radius;
     const maxX = stageWidth - this.radius;
     const minY = this.radius;

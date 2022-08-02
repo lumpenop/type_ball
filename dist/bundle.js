@@ -1,0 +1,32 @@
+/*
+ * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/index.ts":
+/*!**********************!*\
+  !*** ./src/index.ts ***!
+  \**********************/
+/***/ (() => {
+
+eval("var App =\n/** @class */\nfunction () {\n  function App() {\n    this.stageWidth = 1000;\n    this.stageHeight = 500;\n    this.ball = []; // canvas를 생성해주고\n\n    this.canvas = document.createElement(\"canvas\"); // body에 추가한다.\n\n    document.body.appendChild(this.canvas);\n    this.ctx = this.canvas.getContext(\"2d\"); // 디바이스에 따라 선명도를 올려주기 위해 사용\n\n    this.paint(); // 움직이는 공을 위한 애니메이션 함수\n\n    this.ballCount = Math.random() * 10 + 10;\n\n    for (var i = 0; i < this.ballCount; i++) {\n      var radius = Math.random() * 10 + 10;\n      var speed = Number(((Math.random() * (400 - 200) + 200) / 60).toFixed(2));\n      this.ball.push(new Ball(this.stageWidth, this.stageHeight, radius, speed));\n    }\n\n    this.block = new Block(0, 0, this.stageWidth, this.stageHeight);\n    window.requestAnimationFrame(this.animate.bind(this));\n  }\n\n  App.prototype.paint = function () {\n    // resize때마다 canvas의 width, height를 창 사이즈로 만들어 주기 위함.\n    this.canvas.width = this.stageWidth;\n    this.canvas.height = this.stageHeight; // 선명도를 좋게 해주기 위함\n\n    this.ctx.scale(this.pixelRatio, this.pixelRatio);\n  };\n\n  App.prototype.createBall = function () {\n    var _this = this;\n\n    this.ball.forEach(function (item, index) {\n      var filterBall = _this.ball.filter(function (tem, idx) {\n        return index != idx;\n      });\n\n      filterBall.forEach(function (ele) {\n        ele.bounceBall(item);\n      });\n    });\n  };\n\n  App.prototype.animate = function () {\n    var _this = this;\n\n    window.requestAnimationFrame(this.animate.bind(this)); // 애니메이션 함수 호출시 캔버스 clear\n\n    this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);\n    this.block.draw(this.ctx);\n    this.ball.forEach(function (element) {\n      element.draw(_this.ctx, _this.stageWidth, _this.stageHeight);\n    });\n    this.createBall();\n  };\n\n  return App;\n}(); // 캔버스 실행\n\n\nwindow.onload = function () {\n  new App();\n};\n\nvar Block =\n/** @class */\nfunction () {\n  function Block(x, y, width, height) {\n    this.x = x;\n    this.y = y;\n    this.width = width;\n    this.height = height;\n  }\n\n  Block.prototype.draw = function (ctx) {\n    ctx.fillStyle = \"tomato\";\n    ctx.beginPath();\n    ctx.rect(this.x, this.y, this.width, this.height);\n    ctx.fill();\n  };\n\n  return Block;\n}();\n\nvar Ball =\n/** @class */\nfunction () {\n  // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.\n  function Ball(stageWidth, stageHeight, radius, speed) {\n    this.radius = radius; // 공이 움직이는 속도\n\n    var randX = Math.floor(Math.random() * 3 - 1);\n    var randY = Math.floor(Math.random() * 3 - 1);\n    this.vx = randX * speed;\n    this.vy = randY * speed;\n\n    if (this.vx + this.vy === 0) {\n      Math.floor(Math.random() * 2) ? this.vx = speed : this.vy = speed;\n    }\n\n    this.speed = speed; // 우선 공의 지름을 잡는다.\n\n    var diameter = this.radius * 2; // 공이 화면 밖에 생성되면 안되기 때문에 원의 중앙(x, y)을 잡아준다.\n\n    this.x = this.radius + Math.random() * (stageWidth - diameter);\n    this.y = this.radius + Math.random() * (stageHeight - diameter);\n  }\n\n  Ball.prototype.draw = function (ctx, stageWidth, stageHeight) {\n    // 지속적으로 값이 증가함으로써 공이 움직이는 것처럼 보일 예정\n    this.x += this.vx;\n    this.y += this.vy; // 공이 화면에 닿으면 튀게끔 함수를 만듦\n\n    this.bounceWindow(stageWidth, stageHeight);\n    ctx.fillStyle = \"yellow\";\n    ctx.beginPath();\n    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);\n    ctx.fill();\n  };\n\n  Ball.prototype.xChange = function () {\n    this.vx *= -1;\n    this.x += this.vx;\n  };\n\n  Ball.prototype.yChange = function () {\n    this.vy *= -1;\n    this.y += this.vy;\n  };\n\n  Ball.prototype.ballAngle = function (ball) {\n    var thisX = ball.x - (ball.x + ball.vx);\n    var thisY = ball.y - (ball.y + ball.vy);\n    var radian = Math.atan2(thisY, thisX);\n    var degree = radian * 180 / Math.PI;\n    return degree;\n  };\n\n  Ball.prototype.checkAngleRange = function (ang) {\n    if (ang >= 360) {\n      ang -= 360;\n    } else if (ang < 0) {\n      ang += 360;\n    }\n\n    return ang;\n  }; // 더 가까워지는 방향이라면 다시 계산..?\n\n\n  Ball.prototype.bounceBall = function (ab) {\n    var distancX = Math.pow(this.x - ab.x, 2);\n    var distancY = Math.pow(this.y - ab.y, 2);\n    var After = {\n      MoveBetween: Math.sqrt(distancX + distancY),\n      Between: ab.radius + this.radius\n    };\n    var thisAngle = this.ballAngle(this);\n    var abAngle = this.ballAngle(ab);\n\n    if (After.MoveBetween <= After.Between + 4 && After.MoveBetween - After.Between > -4) {\n      var angle = abAngle + Math.abs(thisAngle - abAngle) + 180;\n      angle = this.checkAngleRange(angle);\n      var newX = Math.cos(angle) * this.speed;\n      var newY = Math.sin(angle) * this.speed;\n      this.vx = newX;\n      this.vy = newY;\n    }\n  };\n\n  Ball.prototype.bounceWindow = function (stageWidth, stageHeight) {\n    var minX = this.radius;\n    var maxX = stageWidth - this.radius;\n    var minY = this.radius;\n    var maxY = stageHeight - this.radius; // 창 끝에 닿으면\n\n    if (this.x <= minX || this.x >= maxX) {\n      // 증가 값을 음수로 만들어 반대로 이동하게 한다.\n      this.xChange();\n    }\n\n    if (this.y <= minY || this.y >= maxY) {\n      this.yChange();\n    }\n  };\n\n  return Ball;\n}();\n\n//# sourceURL=webpack:///./src/index.ts?");
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module can't be inlined because the eval devtool is used.
+/******/ 	var __webpack_exports__ = {};
+/******/ 	__webpack_modules__["./src/index.ts"]();
+/******/ 	
+/******/ })()
+;
