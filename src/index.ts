@@ -6,7 +6,6 @@ class App {
   stageWidth = 1000;
   stageHeight = 500;
   ball: Ball[] = [];
-  block;
   ballCount;
 
   constructor() {
@@ -29,7 +28,6 @@ class App {
       );
     }
 
-    this.block = new Block(0, 0, this.stageWidth, this.stageHeight);
     window.requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -52,10 +50,7 @@ class App {
 
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
-    // 애니메이션 함수 호출시 캔버스 clear
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-
-    this.block.draw(this.ctx);
     this.ball.forEach((element) => {
       element.draw(this.ctx, this.stageWidth, this.stageHeight);
     });
@@ -67,24 +62,3 @@ class App {
 window.onload = () => {
   new App();
 };
-
-class Block {
-  x;
-  y;
-  width;
-  height;
-
-  constructor(x: number, y: number, width: number, height: number) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "tomato";
-    ctx.beginPath();
-    ctx.rect(this.x, this.y, this.width, this.height);
-    ctx.fill();
-  }
-}
