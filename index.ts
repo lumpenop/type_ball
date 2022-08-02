@@ -2,10 +2,12 @@ class App {
   canvas;
   ctx;
   pixelRatio;
-  stageWidth = 300;
-  stageHeight = 300;
-  ball;
+  stageWidth = 1000;
+  stageHeight = 500;
+  ball: Ball[] = [];
   block;
+  ballCount;
+  start;
 
   balls: Ball[] = [];
   constructor() {
@@ -20,11 +22,16 @@ class App {
     this.paint();
 
     // 움직이는 공을 위한 애니메이션 함수
-    this.ball = [
-      new Ball(this.stageWidth, this.stageHeight, 15, 6),
-      new Ball(this.stageWidth, this.stageHeight, 15, 6),
-      new Ball(this.stageWidth, this.stageHeight, 15, 6),
-    ];
+    this.ballCount = Math.random() * 10 + 10;
+
+    for (let i = 0; i < this.ballCount; i++) {
+      const radius = Math.random() * 10 + 10;
+      const speed = ((Math.random() * (400 - 200) + 200) / 60).toFixed(2);
+      console.log(speed);
+      this.ball.push(
+        new Ball(this.stageWidth, this.stageHeight, radius, speed)
+      );
+    }
 
     this.block = new Block(0, 0, this.stageWidth, this.stageHeight);
     window.requestAnimationFrame(this.animate.bind(this));
@@ -38,7 +45,19 @@ class App {
     this.ctx.scale(this.pixelRatio, this.pixelRatio);
   }
 
-  animate() {
+  createBall(timestamp) {
+    this.ball.forEach((item, index) => {
+      const forStamp = 0;
+      const filterBall = this.ball.filter((tem, idx) => {
+        return index != idx;
+      });
+      filterBall.forEach((ele) => {
+        ele.bounceBall(item, timestamp);
+      });
+    });
+  }
+
+  animate(timestamp) {
     window.requestAnimationFrame(this.animate.bind(this));
     // 애니메이션 함수 호출시 캔버스 clear
     this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
@@ -48,14 +67,7 @@ class App {
       element.draw(this.ctx, this.stageWidth, this.stageHeight);
     });
 
-    this.ball.forEach((item, index) => {
-      const filterBall = this.ball.filter((tem, idx) => {
-        return index != idx;
-      });
-      filterBall.forEach((ele) => {
-        ele.bounceBall(item);
-      });
-    });
+    this.createBall(timestamp);
   }
 }
 // 캔버스 실행
@@ -84,23 +96,29 @@ class Block {
   }
 }
 class Ball {
+  number;
   radius;
   vx;
   vy;
-  x: 10;
-  y: 10;
+  x;
+  y;
   top;
   bottom;
   right;
   left;
-  flag = false;
   speed;
+  time;
   // 처음 공의 위치를 화면 내에 랜덤하게 줄 예정이기에, 현재화면의 width와 height를 가져온다.
   constructor(stageWidth, stageHeight, radius, speed) {
     this.radius = radius;
     // 공이 움직이는 속도
-    this.vx = speed / 2;
-    this.vy = speed / 2;
+    const randX = Math.floor(Math.random() * 3 - 1);
+    const randY = Math.floor(Math.random() * 3 - 1);
+    this.vx = randX * speed;
+    this.vy = randY * speed;
+    if (this.vx + this.vy === 0) {
+      Math.floor(Math.random() * 2) ? (this.vx = speed) : (this.vy = speed);
+    }
     this.speed = speed;
 
     // 우선 공의 지름을 잡는다.
@@ -143,7 +161,7 @@ class Ball {
   }
 
   checkAngleRange(ang) {
-    if (ang > 360) {
+    if (ang >= 360) {
       ang -= 360;
     } else if (ang < 0) {
       ang += 360;
@@ -151,11 +169,16 @@ class Ball {
     return ang;
   }
 
-  calculateAngle(thisAng, abAng) {
-    thisAng;
+  flag() {
+    let flag = false;
+    return function () {
+      return !flag;
+    };
   }
 
-  bounceBall(ab) {
+  bounceBall(ab, timestamp) {
+    this.time = timestamp;
+
     const distancX = Math.pow(this.x - ab.x, 2);
     const distancY = Math.pow(this.y - ab.y, 2);
 
@@ -167,28 +190,19 @@ class Ball {
     const thisAngle = this.ballAngle(this);
     const abAngle = this.ballAngle(ab);
 
-    if (After.MoveBetween < After.Between - 2) {
-      let angle;
-      if (this.x > ab.x && this.y < ab.y) angle = abAngle + thisAngle - 180;
-      if (this.x > ab.x && this.y > ab.y) angle = abAngle - thisAngle - 180;
-      if (this.x < ab.x && this.y < ab.y) angle = thisAngle + abAngle;
-      if (this.x < ab.x && this.y > ab.y) angle = abAngle - thisAngle;
+    if (
+      After.MoveBetween <= After.Between + 4 &&
+      After.MoveBetween - After.Between > -4
+    ) {
+      let angle = abAngle + (thisAngle - abAngle) + 180;
+
+      angle = this.checkAngleRange(angle);
 
       const newX = Math.cos(angle) * this.speed;
       const newY = Math.sin(angle) * this.speed;
+
       this.vx = newX;
       this.vy = newY;
-      this.x += this.vx + this.radius / 4;
-      this.y += this.vy + this.radius / 4;
-      ab.x -= this.vx + this.radius / 4;
-      ab.y -= this.vy + this.radius / 4;
-
-      if (!this.flag) {
-        console.log(this, angle);
-        this.flag = true;
-        console.log(newX, "newX");
-        console.log(newY, "newY");
-      }
     }
   }
 
