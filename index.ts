@@ -7,9 +7,7 @@ class App {
   ball: Ball[] = [];
   block;
   ballCount;
-  start;
 
-  balls: Ball[] = [];
   constructor() {
     // canvas를 생성해주고
     this.canvas = document.createElement("canvas");
@@ -27,7 +25,6 @@ class App {
     for (let i = 0; i < this.ballCount; i++) {
       const radius = Math.random() * 10 + 10;
       const speed = ((Math.random() * (400 - 200) + 200) / 60).toFixed(2);
-      console.log(speed);
       this.ball.push(
         new Ball(this.stageWidth, this.stageHeight, radius, speed)
       );
@@ -45,14 +42,13 @@ class App {
     this.ctx.scale(this.pixelRatio, this.pixelRatio);
   }
 
-  createBall(timestamp) {
+  createBall() {
     this.ball.forEach((item, index) => {
-      const forStamp = 0;
       const filterBall = this.ball.filter((tem, idx) => {
         return index != idx;
       });
       filterBall.forEach((ele) => {
-        ele.bounceBall(item, timestamp);
+        ele.bounceBall(item);
       });
     });
   }
@@ -67,7 +63,7 @@ class App {
       element.draw(this.ctx, this.stageWidth, this.stageHeight);
     });
 
-    this.createBall(timestamp);
+    this.createBall();
   }
 }
 // 캔버스 실행
@@ -81,6 +77,7 @@ class Block {
   y;
   width;
   height;
+
   constructor(x, y, width, height) {
     this.x = x;
     this.y = y;
@@ -169,16 +166,7 @@ class Ball {
     return ang;
   }
 
-  flag() {
-    let flag = false;
-    return function () {
-      return !flag;
-    };
-  }
-
-  bounceBall(ab, timestamp) {
-    this.time = timestamp;
-
+  bounceBall(ab) {
     const distancX = Math.pow(this.x - ab.x, 2);
     const distancY = Math.pow(this.y - ab.y, 2);
 
@@ -194,7 +182,7 @@ class Ball {
       After.MoveBetween <= After.Between + 4 &&
       After.MoveBetween - After.Between > -4
     ) {
-      let angle = abAngle + (thisAngle - abAngle) + 180;
+      let angle = abAngle + Math.abs(thisAngle - abAngle) + 180;
 
       angle = this.checkAngleRange(angle);
 
